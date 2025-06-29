@@ -12,6 +12,7 @@ import autoTable from 'jspdf-autotable';
 function ViewTrackReportPage({ params: { id } }) {
   const [studentViewData, setStudentViewData] = useState<any>();
   const [trackName, setTrackName] = useState<string>('');
+  
 
   useEffect(() => {
     async function fetchData() {
@@ -41,6 +42,7 @@ function ViewTrackReportPage({ params: { id } }) {
     if (!studentViewData) return;
 
     const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.getWidth();
     let y = 20;
 
     // Data de criação
@@ -83,8 +85,8 @@ function ViewTrackReportPage({ params: { id } }) {
       styles: { fontSize: 10 },
       headStyles: { fillColor: [46, 204, 113] },
       columnStyles: {
-        0: { cellWidth: '85%' },
-        1: { cellWidth: '15%' }
+        0: { cellWidth: pageWidth * 0.85 },
+        1: { cellWidth: pageWidth * 0.15 }
       }
     });
     y = doc.lastAutoTable.finalY + 8;
@@ -114,8 +116,8 @@ function ViewTrackReportPage({ params: { id } }) {
       styles: { fontSize: 10 },
       headStyles: { fillColor: [231, 76, 60] },
       columnStyles: {
-        0: { cellWidth: '85%' },
-        1: { cellWidth: '15%' }
+        0: { cellWidth: pageWidth * 0.85 },
+        1: { cellWidth: pageWidth * 0.15 }
       }
     });
     y = doc.lastAutoTable.finalY + 8;
@@ -145,8 +147,8 @@ function ViewTrackReportPage({ params: { id } }) {
       styles: { fontSize: 10 },
       headStyles: { fillColor: [241, 196, 15] },
       columnStyles: {
-        0: { cellWidth: '85%' },
-        1: { cellWidth: '15%' }
+        0: { cellWidth: pageWidth * 0.85 },
+        1: { cellWidth: pageWidth * 0.15 }
       }
     });
     y = doc.lastAutoTable.finalY + 8;
