@@ -289,7 +289,7 @@ export default function ViewStudentStatsPage() {
         y = (doc as any).lastAutoTable.finalY + 4;
       });
 
-      const pageCount = doc.internal.getNumberOfPages();
+      const pageCount = doc.getNumberOfPages();
       for (let i = 1; i <= pageCount; i++) {
         doc.setPage(i);
         doc.setFontSize(9);
