@@ -247,17 +247,19 @@ export default function ViewStudentStatsPage() {
           ]],
           body: algoritmos.map((alg) => {
             let situacao = '';
-            let fillColor = undefined;
+            let fillColor: number[] | undefined = undefined;
+
             if (alg.correct_attempts > 0) {
               situacao = 'Correto';
-              fillColor = [180, 238, 180]; // verde claro mais visível
+              fillColor = [180, 238, 180]; // verde claro
             } else if (alg.total_attempts > 0) {
               situacao = 'Incorreto';
-              fillColor = [255, 180, 180]; // vermelho claro mais visível
+              fillColor = [255, 180, 180]; // vermelho claro
             } else {
               situacao = 'Nenhum envio';
-              fillColor = [255, 245, 157]; // amarelo claro mais visível
+              fillColor = [255, 245, 157]; // amarelo claro
             }
+
             return [
               alg.algorithm_title,
               { content: alg.total_attempts, styles: { halign: 'center', font: 'helvetica' } },
@@ -270,7 +272,7 @@ export default function ViewStudentStatsPage() {
                   halign: 'center',
                   font: 'helvetica',
                   fillColor,
-                  textColor: [60, 60, 60]
+                  textColor: [60, 60, 60],
                 }
               }
             ];
