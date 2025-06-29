@@ -48,13 +48,13 @@ function ViewTrackReportPage({ params: { id } }) {
 
     // Título principal com nome da trilha
     doc.setFontSize(18);
-    doc.setFont(undefined, 'bold');
+    doc.setFont(undefined as any, 'bold');
     doc.text(`Relatório da Trilha: ${trackName}`, 14, y);
     y += 12;
 
     // Título da seção dos alunos
     doc.setFontSize(15);
-    doc.setFont(undefined, 'bold');
+    doc.setFont(undefined as any, 'bold');
     doc.text('Relatório das Tentativas dos Alunos', 14, y);
     y += 10;
 
@@ -174,13 +174,13 @@ function ViewTrackReportPage({ params: { id } }) {
 
     // Título novamente no topo da nova página
     doc.setFontSize(18);
-    doc.setFont(undefined, 'bold');
+    doc.setFont(undefined as any, 'bold');
     doc.text(`Relatório da Trilha: ${trackName}`, 14, y);
     y += 12;
 
     // Título da seção de exercícios
     doc.setFontSize(15);
-    doc.setFont(undefined, 'bold');
+    doc.setFont(undefined as any, 'bold');
     doc.text('Estatísticas por Exercício', 14, y);
     y += 10;
 
@@ -189,16 +189,16 @@ function ViewTrackReportPage({ params: { id } }) {
         doc.addPage();
         y = 20;
         doc.setFontSize(18);
-        doc.setFont(undefined, 'bold');
+        doc.setFont(undefined as any, 'bold');
         doc.text(`Relatório da Trilha: ${trackName}`, 14, y);
         y += 12;
         doc.setFontSize(15);
-        doc.setFont(undefined, 'bold');
+        doc.setFont(undefined as any, 'bold');
         doc.text('Estatísticas por Exercício', 14, y);
         y += 10;
       }
       doc.setFontSize(13);
-      doc.setFont(undefined, 'bold');
+      doc.setFont(undefined as any, 'bold');
       doc.text(`Exercício: ${exercise.algorithm_title}`, 14, y += 10);
 
       // Tabela de estatísticas gerais do exercício
@@ -253,7 +253,7 @@ function ViewTrackReportPage({ params: { id } }) {
     for (let i = 1; i <= pageCount; i++) {
       doc.setPage(i);
       doc.setFontSize(9);
-      doc.setFont(undefined, 'normal');
+      doc.setFont(undefined as any, 'normal');
       // Data à esquerda
       doc.text(
         `${dataCriacao}`,
