@@ -36,6 +36,12 @@ interface AlunoData {
   attempts: Attempt[];
 }
 
+interface AlunoStatsViewProps {
+  aluno: AlunoData;
+  chartRef: React.MutableRefObject<any>;
+  enrolledTracks?: any[]; // corrigido para não exigir explicitamente a prop
+}
+
 export default function ViewStudentStatsPage() {
   const params = useParams();
   const userIdParam = params.userId;
@@ -48,113 +54,110 @@ export default function ViewStudentStatsPage() {
   const chartRef = useRef<any>(null);
 
   useEffect(() => {
-  if (!userId) return;
+    if (!userId) return;
 
-  async function fetchData() {
-    setLoading(true);
-    let trackId = 1;
+    async function fetchData() {
+      setLoading(true);
+      let trackId = 1;
 
-    const algorithmsMap: Record<string, AlgorithmStats> = {};
-    const attemptsList: Attempt[] = [];
+      const algorithmsMap: Record<string, AlgorithmStats> = {};
+      const attemptsList: Attempt[] = [];
 
-    let statsBase = {
-      user_name: '',
-      total_attempts: 0,
-      error_attempts: 0,
-      incorrect_attempts: 0,
-      notAnswered: true,
-    };
+      let statsBase = {
+        user_name: '',
+        total_attempts: 0,
+        error_attempts: 0,
+        incorrect_attempts: 0,
+        notAnswered: true,
+      };
 
-    const allTracks = (await api.get('/tracks'))?.data?.data || [];
-    const totalTracks = allTracks.length;
+      const allTracks = (await api.get('/tracks'))?.data?.data || [];
+      const totalTracks = allTracks.length;
 
-    while (trackId <= totalTracks) {
-      try {
-        const response = await getTrackUsersSummaryService(trackId);
-        console.log(trackId,' Dados da trilha:', response);
-        const studentView = response?.data?.data?.studentView ?? {};
-        const algorithmView = response?.data?.data?.algorithmView ?? {};
-        const studentStats = studentView[userId];
+      while (trackId <= totalTracks) {
+        try {
+          const response = await getTrackUsersSummaryService(trackId);
+          const studentView = response?.data?.data?.studentView ?? {};
+          const algorithmView = response?.data?.data?.algorithmView ?? {};
+          const studentStats = studentView[userId];
 
-        if (!studentStats) {
-          trackId++;
-          continue;
-        }
-
-        statsBase.user_name = studentStats.user_name;
-        statsBase.total_attempts += studentStats.total_attempts || 0;
-        statsBase.error_attempts += studentStats.error_attempts || 0;
-        statsBase.incorrect_attempts += studentStats.incorrect_attempts || 0;
-        if (!studentStats.notAnswered) {
-          statsBase.notAnswered = false;
-        }
-
-        Object.values(algorithmView).forEach((alg: any) => {
-          const trackName = allTracks[trackId - 1]?.title || '';
-          const algorithmKey = `${trackId}-${alg.algorithm_title}`; // chave única por trilha + algoritmo
-
-          const studentEntry = (alg.students ?? []).find(
-            (s: any) => s.user_id === parseInt(userId)
-          );
-
-          if (!algorithmsMap[algorithmKey]) {
-            algorithmsMap[algorithmKey] = {
-              track_name: trackName,
-              algorithm_title: alg.algorithm_title,
-              total_attempts: 0,
-              correct_attempts: 0,
-              incorrect_attempts: 0,
-              error_attempts: 0,
-              notAnswered: 1, // Assume não feito
-            };
+          if (!studentStats) {
+            trackId++;
+            continue;
           }
 
-          if (studentEntry && studentEntry.total_attempts > 0) {
-            algorithmsMap[algorithmKey].total_attempts += studentEntry.correct_attempts + studentEntry.incorrect_attempts + studentEntry.error_attempts;
-            algorithmsMap[algorithmKey].correct_attempts += studentEntry.correct_attempts;
-            algorithmsMap[algorithmKey].incorrect_attempts += studentEntry.incorrect_attempts;
-            algorithmsMap[algorithmKey].error_attempts += studentEntry.error_attempts;
-            algorithmsMap[algorithmKey].notAnswered = studentEntry.notAnswered || 0;
+          statsBase.user_name = studentStats.user_name;
+          statsBase.total_attempts += studentStats.total_attempts || 0;
+          statsBase.error_attempts += studentStats.error_attempts || 0;
+          statsBase.incorrect_attempts += studentStats.incorrect_attempts || 0;
+          if (!studentStats.notAnswered) {
+            statsBase.notAnswered = false;
+          }
 
-            if (Array.isArray(studentEntry.attempts)) {
-              studentEntry.attempts.forEach((att: any) => {
-                attemptsList.push({
-                  exerciseId: att.exercise_id?.toString() || '',
-                  correct: att.correct === true,
-                });
-              });
+          Object.values(algorithmView).forEach((alg: any) => {
+            const trackName = allTracks[trackId - 1]?.title || '';
+            const algorithmKey = `${trackId}-${alg.algorithm_title}`;
+
+            const studentEntry = (alg.students ?? []).find(
+              (s: any) => s.user_id === parseInt(userId)
+            );
+
+            if (!algorithmsMap[algorithmKey]) {
+              algorithmsMap[algorithmKey] = {
+                track_name: trackName,
+                algorithm_title: alg.algorithm_title,
+                total_attempts: 0,
+                correct_attempts: 0,
+                incorrect_attempts: 0,
+                error_attempts: 0,
+                notAnswered: 1,
+              };
             }
-          }
-        });
-      } catch (err) {
-        console.warn(`Erro na trilha ${trackId}:`, err);
-        break;
+
+            if (studentEntry && studentEntry.total_attempts > 0) {
+              algorithmsMap[algorithmKey].total_attempts += studentEntry.correct_attempts + studentEntry.incorrect_attempts + studentEntry.error_attempts;
+              algorithmsMap[algorithmKey].correct_attempts += studentEntry.correct_attempts;
+              algorithmsMap[algorithmKey].incorrect_attempts += studentEntry.incorrect_attempts;
+              algorithmsMap[algorithmKey].error_attempts += studentEntry.error_attempts;
+              algorithmsMap[algorithmKey].notAnswered = studentEntry.notAnswered || 0;
+
+              if (Array.isArray(studentEntry.attempts)) {
+                studentEntry.attempts.forEach((att: any) => {
+                  attemptsList.push({
+                    exerciseId: att.exercise_id?.toString() || '',
+                    correct: att.correct === true,
+                  });
+                });
+              }
+            }
+          });
+        } catch (err) {
+          console.warn(`Erro na trilha ${trackId}:`, err);
+          break;
+        }
+        trackId++;
       }
-      trackId++;
+
+      const algorithms = Object.values(algorithmsMap);
+
+      if (statsBase.total_attempts > 0 || !statsBase.notAnswered) {
+        setStudentData({
+          ...statsBase,
+          algorithms,
+          total_exercises: algorithms.filter(a => a.notAnswered !== 1).length,
+          correct_exercises: algorithms.filter(a => a.correct_attempts > 0).length,
+          incorrect_exercises: algorithms.filter(a => a.correct_attempts === 0 && a.notAnswered !== 1).length,
+          attempts: attemptsList,
+        });
+      } else {
+        setStudentData(null);
+      }
+
+      setLoading(false);
     }
 
-    const algorithms = Object.values(algorithmsMap);
-
-    if (statsBase.total_attempts > 0 || !statsBase.notAnswered) {
-      setStudentData({
-        ...statsBase,
-        algorithms,
-        total_exercises: algorithms.filter(a => a.notAnswered !== 1).length,
-        correct_exercises: algorithms.filter(a => a.correct_attempts > 0).length,
-        incorrect_exercises: algorithms.filter(a => a.correct_attempts === 0 && a.notAnswered !== 1).length,
-        attempts: attemptsList,
-      });
-      
-    } else {
-      setStudentData(null);
-    }
-    setLoading(false);
-  }
-  
-
-  fetchData();
-}, [userId]);
-
+    fetchData();
+  }, [userId]);
 
   function handleExportPDF() {
     if (!studentData) return;
@@ -177,16 +180,13 @@ export default function ViewStudentStatsPage() {
 
     autoTable(doc, {
       startY: y,
-      head: [[
-        { content: 'Campo', styles: { halign: 'left', fontStyle: 'bold' } },
-        { content: 'Valor', styles: { halign: 'left', fontStyle: 'bold' } }
-      ]],
+      head: [['Campo', 'Valor']],
       body: [
-        ['Total de exercícios resolvidos', studentData.total_exercises],
-        ['Exercícios submetidos - aprovados no teste', studentData.correct_exercises],
-        ['Exercícios submetidos - reprovados no teste', studentData.incorrect_exercises],
-        ['Exercícios submetidos com erro de execução', studentData.error_attempts],
-        ['Total de Submissões', studentData.correct_exercises + studentData.incorrect_exercises + studentData.error_attempts],
+        ['Total de exercícios resolvidos', `${studentData.total_exercises}`],
+        ['Exercícios submetidos - aprovados no teste', `${studentData.correct_exercises}`],
+        ['Exercícios submetidos - reprovados no teste', `${studentData.incorrect_exercises}`],
+        ['Exercícios submetidos com erro de execução', `${studentData.error_attempts}`],
+        ['Total de Submissões', `${studentData.correct_exercises + studentData.incorrect_exercises + studentData.error_attempts}`],
       ],
       theme: 'grid',
       styles: { fontSize: 11, font: 'helvetica' },
@@ -196,9 +196,8 @@ export default function ViewStudentStatsPage() {
         1: { cellWidth: 100 },
       }
     });
-    y = (doc as any).lastAutoTable.finalY + 10;
+    y = doc.lastAutoTable.finalY + 10;
 
-    // Espera o gráfico renderizar (caso necessário)
     setTimeout(() => {
       const chartCanvas = chartRef.current?.canvas || chartRef.current?.ctx?.canvas;
       if (chartCanvas) {
@@ -207,14 +206,12 @@ export default function ViewStudentStatsPage() {
         y += 75;
       }
 
-      // Agrupa algoritmos por trilha
       const trilhas: Record<string, AlgorithmStats[]> = {};
       for (const alg of studentData.algorithms) {
         if (!trilhas[alg.track_name]) trilhas[alg.track_name] = [];
         trilhas[alg.track_name].push(alg);
       }
 
-      // Para cada trilha, cria uma tabela
       Object.entries(trilhas).forEach(([trilha, algoritmos]) => {
         autoTable(doc, {
           startY: y + 4,
@@ -236,31 +233,32 @@ export default function ViewStudentStatsPage() {
         });
 
         autoTable(doc, {
-          startY: (doc as any).lastAutoTable.finalY,
+          startY: doc.lastAutoTable.finalY,
           head: [[
-            { content: 'Exercício', styles: { halign: 'center', font: 'helvetica', fillColor:[0, 0, 0] } },
-            { content: 'Submissões Totais', styles: { halign: 'center', font: 'helvetica', fillColor:[0, 0, 0] } },
-            { content: 'Submissões com código aprovado no teste', styles: { halign: 'center', font: 'helvetica', fillColor:[0, 0, 0] } },
-            { content: 'Submissões com código reprovado no teste', styles: { halign: 'center', font: 'helvetica', fillColor:[0, 0, 0] } },
-            { content: 'Submissões com erro de execução', styles: { halign: 'center', font: 'helvetica', fillColor:[0, 0, 0] } },
-            { content: 'Situação', styles: { halign: 'center', font: 'helvetica', fillColor:[0, 0, 0] } }
+            { content: 'Exercício', styles: { halign: 'center', font: 'helvetica' } },
+            { content: 'Submissões Totais', styles: { halign: 'center', font: 'helvetica' } },
+            { content: 'Submissões Aprovadas', styles: { halign: 'center', font: 'helvetica' } },
+            { content: 'Reprovações', styles: { halign: 'center', font: 'helvetica' } },
+            { content: 'Erros de Execução', styles: { halign: 'center', font: 'helvetica' } },
+            { content: 'Situação', styles: { halign: 'center', font: 'helvetica' } }
           ]],
           body: algoritmos.map((alg) => {
             let situacao = '';
             let fillColor: [number, number, number] | undefined = undefined;
+
             if (alg.correct_attempts > 0) {
               situacao = 'Correto';
-              fillColor = [180, 238, 180]; // verde claro
+              fillColor = [180, 238, 180];
             } else if (alg.total_attempts > 0) {
               situacao = 'Incorreto';
-              fillColor = [255, 180, 180]; // vermelho claro
+              fillColor = [255, 180, 180];
             } else {
               situacao = 'Nenhum envio';
-              fillColor = [255, 245, 157]; // amarelo claro
+              fillColor = [255, 245, 157];
             }
 
             return [
-              { content: alg.algorithm_title, styles: { halign: 'center', font: 'helvetica' } },
+              alg.algorithm_title,
               { content: alg.total_attempts, styles: { halign: 'center', font: 'helvetica' } },
               { content: alg.correct_attempts, styles: { halign: 'center', font: 'helvetica' } },
               { content: alg.incorrect_attempts, styles: { halign: 'center', font: 'helvetica' } },
@@ -270,10 +268,10 @@ export default function ViewStudentStatsPage() {
                 styles: {
                   halign: 'center',
                   font: 'helvetica',
-                  fillColor: fillColor ?? undefined,
-                  textColor: [60, 60, 60],
-                },
-              },
+                  fillColor,
+                  textColor: [60, 60, 60]
+                }
+              }
             ];
           }),
           theme: 'grid',
@@ -288,11 +286,10 @@ export default function ViewStudentStatsPage() {
             5: { cellWidth: 'auto' },
           }
         });
-        y = (doc as any).lastAutoTable.finalY + 4;
+        y = doc.lastAutoTable.finalY + 4;
       });
 
-      // Rodapé: data à esquerda, página à direita
-      const pageCount = doc.getNumberOfPages();
+      const pageCount = doc.internal.getNumberOfPages();
       for (let i = 1; i <= pageCount; i++) {
         doc.setPage(i);
         doc.setFontSize(9);
@@ -315,8 +312,6 @@ export default function ViewStudentStatsPage() {
     }, 500);
   }
 
-  console.log('PAGE Dados do aluno:', studentData)
-
   return (
     <div className="flex flex-1 flex-col w-full gap-4 p-4">
       <div className="flex justify-end mb-4">
@@ -332,7 +327,7 @@ export default function ViewStudentStatsPage() {
         {loading ? (
           <p>Carregando dados...</p>
         ) : studentData ? (
-          <AlunoStatsView aluno={studentData} chartRef={chartRef} />
+          <AlunoStatsView aluno={studentData} chartRef={chartRef} enrolledTracks={[]} />
         ) : (
           <p>Nenhum dado encontrado para o aluno.</p>
         )}
