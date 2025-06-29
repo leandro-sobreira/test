@@ -247,8 +247,7 @@ export default function ViewStudentStatsPage() {
           ]],
           body: algoritmos.map((alg) => {
             let situacao = '';
-            let fillColor: number[] | undefined = undefined;
-
+            let fillColor: [number, number, number] | undefined = undefined;
             if (alg.correct_attempts > 0) {
               situacao = 'Correto';
               fillColor = [180, 238, 180]; // verde claro
@@ -261,7 +260,7 @@ export default function ViewStudentStatsPage() {
             }
 
             return [
-              alg.algorithm_title,
+              { content: alg.algorithm_title, styles: { halign: 'center', font: 'helvetica' } },
               { content: alg.total_attempts, styles: { halign: 'center', font: 'helvetica' } },
               { content: alg.correct_attempts, styles: { halign: 'center', font: 'helvetica' } },
               { content: alg.incorrect_attempts, styles: { halign: 'center', font: 'helvetica' } },
@@ -271,10 +270,10 @@ export default function ViewStudentStatsPage() {
                 styles: {
                   halign: 'center',
                   font: 'helvetica',
-                  fillColor,
+                  fillColor: fillColor ?? undefined,
                   textColor: [60, 60, 60],
-                }
-              }
+                },
+              },
             ];
           }),
           theme: 'grid',
