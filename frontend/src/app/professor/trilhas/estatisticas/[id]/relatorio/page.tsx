@@ -251,9 +251,9 @@ function ViewTrackReportPage({ params: { id } }) {
     });
 
     // Rodapé: número da página e data de criação
-    const pageCount = doc.internal.getNumberOfPages();
+    const pageCount = (doc.internal as any).getNumberOfPages();
     for (let i = 1; i <= pageCount; i++) {
-      doc.setPage(i);
+      (doc as any).setPage(i);
       doc.setFontSize(9);
       doc.setFont(undefined as any, 'normal');
       // Data à esquerda
