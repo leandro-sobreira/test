@@ -196,7 +196,7 @@ export default function ViewStudentStatsPage() {
         1: { cellWidth: 100 },
       }
     });
-    y = doc.lastAutoTable.finalY + 10;
+    y = (doc as any).lastAutoTable.finalY + 10;
 
     setTimeout(() => {
       const chartCanvas = chartRef.current?.canvas || chartRef.current?.ctx?.canvas;
@@ -233,7 +233,7 @@ export default function ViewStudentStatsPage() {
         });
 
         autoTable(doc, {
-          startY: doc.lastAutoTable.finalY,
+          startY: (doc as any).lastAutoTable.finalY,
           head: [[
             { content: 'Exercício', styles: { halign: 'center', font: 'helvetica' } },
             { content: 'Submissões Totais', styles: { halign: 'center', font: 'helvetica' } },
@@ -286,7 +286,7 @@ export default function ViewStudentStatsPage() {
             5: { cellWidth: 'auto' },
           }
         });
-        y = doc.lastAutoTable.finalY + 4;
+        y = (doc as any).lastAutoTable.finalY + 4;
       });
 
       const pageCount = doc.internal.getNumberOfPages();
