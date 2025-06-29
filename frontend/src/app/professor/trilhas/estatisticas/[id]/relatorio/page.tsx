@@ -89,7 +89,7 @@ function ViewTrackReportPage({ params: { id } }) {
         1: { cellWidth: pageWidth * 0.15 }
       }
     });
-    y = doc.lastAutoTable.finalY + 8;
+    y = (doc as any).lastAutoTable.finalY + 8;
 
     // --- Incorretas ---
     const incorrectStudents = Object.values(studentViewData.studentView)
@@ -120,7 +120,7 @@ function ViewTrackReportPage({ params: { id } }) {
         1: { cellWidth: pageWidth * 0.15 }
       }
     });
-    y = doc.lastAutoTable.finalY + 8;
+    y = (doc as any).lastAutoTable.finalY + 8;
 
     // --- Erros de execução ---
     const errorStudents = Object.values(studentViewData.studentView)
@@ -151,7 +151,7 @@ function ViewTrackReportPage({ params: { id } }) {
         1: { cellWidth: pageWidth * 0.15 }
       }
     });
-    y = doc.lastAutoTable.finalY + 8;
+    y = (doc as any).lastAutoTable.finalY + 8;
 
     // --- Não respondido ---
     const notAnsweredStudents = Object.values(studentViewData.studentView)
@@ -218,7 +218,7 @@ function ViewTrackReportPage({ params: { id } }) {
         styles: { fontSize: 10 },
         headStyles: { fillColor: [52, 152, 219] },
       });
-      y = doc.lastAutoTable.finalY + 2;
+      y = (doc as any).lastAutoTable.finalY + 2;
 
       // Tabela de alunos por categoria, um aluno por linha, "Nenhum" se vazio
       const students = exercise.students || [];
@@ -247,7 +247,7 @@ function ViewTrackReportPage({ params: { id } }) {
         styles: { fontSize: 9 },
         headStyles: { fillColor: [200, 200, 200] },
       });
-      y = doc.lastAutoTable.finalY + 8;
+      y = (doc as any).lastAutoTable.finalY + 8;
     });
 
     // Rodapé: número da página e data de criação
